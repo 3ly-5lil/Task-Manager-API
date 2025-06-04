@@ -1,0 +1,5 @@
+### Get All Products
+GET http://LOCALHOST:8080/api/tasks
+
+### Get Product By Id
+GET http://LOCALHOST:8080/api/tasks/1
