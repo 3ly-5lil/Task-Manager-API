@@ -2,9 +2,12 @@ package com.ak.task_manger_api.services;
 
 import com.ak.task_manger_api.models.Task;
 import com.ak.task_manger_api.repositories.TaskRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Optional;
@@ -12,15 +15,12 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 public class TaskServiceTests {
+    @Mock
     private TaskRepository taskRepository;
+    @InjectMocks
     private TaskService taskService;
-
-    @BeforeEach
-    void setUp() {
-        taskRepository = mock(TaskRepository.class);
-        taskService = new TaskService(taskRepository);
-    }
 
     @Test
     void shouldReturnAllTask() {
@@ -52,7 +52,7 @@ public class TaskServiceTests {
         }
         @Test
         void shouldReturnEmptyWhenNotExists() {
-            when(taskRepository.findById(1)).thenReturn(Optional.empty());
+            when(taskRepository.findById(100)).thenReturn(Optional.empty());
 
             Optional<Task> result = taskService.getTaskById(100);
 
