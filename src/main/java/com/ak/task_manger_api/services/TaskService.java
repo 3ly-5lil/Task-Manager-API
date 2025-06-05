@@ -29,7 +29,7 @@ public class TaskService {
         return _repository.save(task);
     }
 
-    public Task updateTask(int id, Task updatedTask) {
+    public Task updateTask(int id, Task updatedTask) throws RuntimeException {
         return _repository.findById(id).map(task -> {
             task.setTitle(updatedTask.getTitle());
             task.setDescription(updatedTask.getDescription());
