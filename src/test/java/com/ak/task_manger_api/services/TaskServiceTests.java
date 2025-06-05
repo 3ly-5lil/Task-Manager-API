@@ -12,7 +12,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-public class TaskServiceTest {
+public class TaskServiceTests {
     private TaskRepository taskRepository;
     private TaskService taskService;
 
