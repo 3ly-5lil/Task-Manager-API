@@ -1,8 +1,6 @@
 package com.ak.task_manger_api.repositories;
 
 import com.ak.task_manger_api.models.Task;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -17,7 +15,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @DataJpaTest @Testcontainers
 public class TaskRepositoryTest {
-    @Container
+    // the warning is baseless the container start at the start of test and close at the end
+    @SuppressWarnings("resource") @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17.2")
             .withDatabaseName("TaskManagerTestDb")
             .withUsername("user")
@@ -28,16 +27,6 @@ public class TaskRepositoryTest {
         registry.add("spring.datasource.url", postgres::getJdbcUrl);
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
-    }
-
-    @BeforeAll
-    static void beforeAll() {
-        postgres.start();
-    }
-
-    @AfterAll
-    static void afterAll() {
-        postgres.stop();
     }
 
     @Autowired
