@@ -1,6 +1,7 @@
-package com.ak.task_manger_api.repositories;
+package com.ak.task_manger_api.tasks.repositories;
 
-import com.ak.task_manger_api.models.Task;
+import com.ak.task_manger_api.tasks.models.Task;
+import com.ak.task_manger_api.tasks.repositories.TaskRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;

@@ -1,7 +1,7 @@
-package com.ak.task_manger_api.controllers;
+package com.ak.task_manger_api.tasks.controllers;
 
-import com.ak.task_manger_api.models.Task;
-import com.ak.task_manger_api.services.TaskService;
+import com.ak.task_manger_api.tasks.models.Task;
+import com.ak.task_manger_api.tasks.services.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

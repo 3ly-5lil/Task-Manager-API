@@ -1,7 +1,8 @@
-package com.ak.task_manger_api.services;
+package com.ak.task_manger_api.tasks.services;
 
-import com.ak.task_manger_api.models.Task;
-import com.ak.task_manger_api.repositories.TaskRepository;
+import com.ak.task_manger_api.tasks.models.Task;
+import com.ak.task_manger_api.tasks.repositories.TaskRepository;
+import com.ak.task_manger_api.tasks.services.TaskService;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

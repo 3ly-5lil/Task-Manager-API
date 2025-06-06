@@ -1,7 +1,8 @@
-package com.ak.task_manger_api.controllers;
+package com.ak.task_manger_api.tasks.controllers;
 
-import com.ak.task_manger_api.models.Task;
-import com.ak.task_manger_api.services.TaskService;
+import com.ak.task_manger_api.tasks.controllers.TaskController;
+import com.ak.task_manger_api.tasks.models.Task;
+import com.ak.task_manger_api.tasks.services.TaskService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

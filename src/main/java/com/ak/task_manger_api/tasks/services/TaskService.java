@@ -1,7 +1,7 @@
-package com.ak.task_manger_api.services;
+package com.ak.task_manger_api.tasks.services;
 
-import com.ak.task_manger_api.models.Task;
-import com.ak.task_manger_api.repositories.TaskRepository;
+import com.ak.task_manger_api.tasks.models.Task;
+import com.ak.task_manger_api.tasks.repositories.TaskRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
