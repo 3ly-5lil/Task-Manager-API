@@ -9,7 +9,7 @@ import lombok.*;
 @Data @Entity @NoArgsConstructor @AllArgsConstructor @Builder
 public class Task {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Integer id;
+    Long id;
     String title;
     String description;
     boolean completed;

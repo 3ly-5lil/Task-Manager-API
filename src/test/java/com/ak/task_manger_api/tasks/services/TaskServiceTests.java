@@ -26,9 +26,9 @@ public class TaskServiceTests {
     @Test
     void shouldReturnAllTask() {
         List<Task> mockTasks = List.of(
-                new Task(1, "Test 1", "Desc 1", false),
-                new Task(2, "Test 2", "Desc 2", true),
-                new Task(3, "Test 3", "Desc 3", false)
+                new Task(1L, "Test 1", "Desc 1", false),
+                new Task(2L, "Test 2", "Desc 2", true),
+                new Task(3L, "Test 3", "Desc 3", false)
         );
         when(taskRepository.findAll()).thenReturn(mockTasks);
 
@@ -42,30 +42,30 @@ public class TaskServiceTests {
     class GetTaskByIdTests {
         @Test
         void shouldReturnTaskWhenExists() {
-            Task task = new Task(1,"title","desc",false);
-            when(taskRepository.findById(1)).thenReturn(Optional.of(task));
+            Task task = new Task(1L,"title","desc",false);
+            when(taskRepository.findById(1L)).thenReturn(Optional.of(task));
 
             Optional<Task> result = taskService.getTaskById(1);
 
             assertTrue(result.isPresent());
             assertEquals(task, result.get());
-            verify(taskRepository).findById(1);
+            verify(taskRepository).findById(1L);
         }
         @Test
         void shouldReturnEmptyWhenNotExists() {
-            when(taskRepository.findById(100)).thenReturn(Optional.empty());
+            when(taskRepository.findById(100L)).thenReturn(Optional.empty());
 
-            Optional<Task> result = taskService.getTaskById(100);
+            Optional<Task> result = taskService.getTaskById(100L);
 
             assertTrue(result.isEmpty());
-            verify(taskRepository).findById(100);
+            verify(taskRepository).findById(100L);
         }
     }
 
     @Test
     void shouldCreateAndReturnTask () {
         Task task = Task.builder().title("Task 5").description("Desc 5").completed(false).build();
-        Task createdTask = new Task(1, task.getTitle(), task.getDescription(), task.isCompleted());
+        Task createdTask = new Task(1L, task.getTitle(), task.getDescription(), task.isCompleted());
 
         when(taskRepository.save(task)).thenReturn(createdTask);
 
@@ -80,7 +80,7 @@ public class TaskServiceTests {
     class UpdateTaskTests {
         @Test
         void shouldUpdateTaskWhenExists(){
-            Task task = new Task(44, "title", "desc", false);
+            Task task = new Task(44L, "title", "desc", false);
             Task updatedTask = new Task(null, "updated title", "desc", true);
 
             when(taskRepository.findById(task.getId())).thenReturn(Optional.of(task));
@@ -98,23 +98,23 @@ public class TaskServiceTests {
         }
         @Test
         void shouldThrowExceptionWhenNotExists(){
-            when(taskRepository.findById(0)).thenReturn(Optional.empty());
+            when(taskRepository.findById(0L)).thenReturn(Optional.empty());
 
             Task task = new Task(null, "title", "desc", false);
 
             assertThrows(RuntimeException.class, () -> taskService.updateTask(0, task));
 
-            verify(taskRepository).findById(0);
+            verify(taskRepository).findById(0L);
             verify(taskRepository, never()).save(any());
         }
     }
 
     @Test
     void shouldDeleteTask () {
-        doNothing().when(taskRepository).deleteById(0);
+        doNothing().when(taskRepository).deleteById(0L);
 
-        taskService.deleteTask(0);
+        taskService.deleteTask(0L);
 
-        verify(taskRepository).deleteById(0);
+        verify(taskRepository).deleteById(0L);
     }
 }

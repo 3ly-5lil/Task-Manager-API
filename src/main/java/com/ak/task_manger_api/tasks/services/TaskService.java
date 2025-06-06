@@ -21,7 +21,7 @@ public class TaskService {
         return _repository.findAll();
     }
 
-    public Optional<Task> getTaskById(int id) {
+    public Optional<Task> getTaskById(long id) {
         return _repository.findById(id);
     }
 
@@ -29,7 +29,7 @@ public class TaskService {
         return _repository.save(task);
     }
 
-    public Task updateTask(int id, Task updatedTask) throws RuntimeException {
+    public Task updateTask(long id, Task updatedTask) throws RuntimeException {
         return _repository.findById(id).map(task -> {
             task.setTitle(updatedTask.getTitle());
             task.setDescription(updatedTask.getDescription());
@@ -38,7 +38,7 @@ public class TaskService {
         }).orElseThrow(() -> new RuntimeException("Task not found"));
     }
 
-    public void deleteTask(int id) {
+    public void deleteTask(long id) {
         _repository.deleteById(id);
     }
 }

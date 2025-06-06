@@ -1,6 +1,5 @@
 package com.ak.task_manger_api.tasks.controllers;
 
-import com.ak.task_manger_api.tasks.controllers.TaskController;
 import com.ak.task_manger_api.tasks.models.Task;
 import com.ak.task_manger_api.tasks.services.TaskService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -39,9 +38,9 @@ public class TaskControllerTests {
     @Test
     void shouldReturnAllTasks() throws Exception {
         List<Task> mockTasks = List.of(
-                new Task(1, "Test 1", "Desc 1", false),
-                new Task(2, "Test 2", "Desc 2", true),
-                new Task(3, "Test 3", "Desc 3", false)
+                new Task(1L, "Test 1", "Desc 1", false),
+                new Task(2L, "Test 2", "Desc 2", true),
+                new Task(3L, "Test 3", "Desc 3", false)
         );
 
         when(taskService.getAllTasks())
@@ -58,9 +57,9 @@ public class TaskControllerTests {
     class GetTaskByIdTest {
         @Test
         void shouldReturnTaskIfExists() throws Exception {
-            Task task = new Task(1, "title", "desc", false);
+            Task task = new Task(1L, "title", "desc", false);
 
-            when(taskService.getTaskById(1)).thenReturn(Optional.of(task));
+            when(taskService.getTaskById(1L)).thenReturn(Optional.of(task));
 
             mockMvc.perform(get("/tasks/1"))
                     .andExpect(status().isOk())
@@ -88,7 +87,7 @@ public class TaskControllerTests {
                 .completed(false)
                 .build();
 
-        Task createdTask = new Task(1, task.getTitle(), task.getDescription(), task.isCompleted());
+        Task createdTask = new Task(1L, task.getTitle(), task.getDescription(), task.isCompleted());
 
         when(taskService.createTask(task))
                 .thenReturn(createdTask);
@@ -104,7 +103,7 @@ public class TaskControllerTests {
     class UpdateTaskTest {
         @Test
         void shouldUpdateTaskIfExists() throws Exception {
-            Task task = new Task(1, "title", "desc", false);
+            Task task = new Task(1L, "title", "desc", false);
             Task updatedTask = new Task(null, "updated title", "updated desc", true);
 
             when(taskService.updateTask(task.getId(), updatedTask)).thenAnswer(invocation -> {
