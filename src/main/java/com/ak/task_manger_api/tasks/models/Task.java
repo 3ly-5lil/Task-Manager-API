@@ -1,6 +1,7 @@
 package com.ak.task_manger_api.tasks.models;
 
 import com.ak.task_manger_api.auth.models.AppUser;
+import com.ak.task_manger_api.tasks.DTO.TaskRequest;
 import com.ak.task_manger_api.tasks.DTO.TaskResponse;
 import jakarta.persistence.*;
 import lombok.*;
@@ -17,5 +18,13 @@ public class Task {
 
     public TaskResponse toDTO() {
         return new TaskResponse(id, title, description, completed, user.getId());
+    }
+
+    static public Task fromDTO(TaskRequest taskRequest) {
+        return Task.builder()
+                .title(taskRequest.getTitle())
+                .description(taskRequest.getDescription())
+                .completed(taskRequest.getCompleted())
+                .build();
     }
 }

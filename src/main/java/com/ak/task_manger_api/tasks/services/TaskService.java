@@ -1,6 +1,7 @@
 package com.ak.task_manger_api.tasks.services;
 
 import com.ak.task_manger_api.auth.models.AppUser;
+import com.ak.task_manger_api.tasks.DTO.TaskRequest;
 import com.ak.task_manger_api.tasks.models.Task;
 import com.ak.task_manger_api.tasks.repositories.TaskRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -29,19 +30,21 @@ public class TaskService {
         return task;
     }
 
-    public Task createTask(Task task, AppUser requester) {
-        task.setUser(requester);
-        return _repository.save(task);
+    public Task createTask(TaskRequest task, AppUser requester) {
+        Task created = Task.fromDTO(task);
+        created.setUser(requester);
+        return _repository.save(created);
     }
 
-    public Task updateTask(long id, Task updatedTask, AppUser requester) throws RuntimeException {
+    public Task updateTask(long id, TaskRequest updatedTask, AppUser requester) throws RuntimeException {
         return _repository.findById(id).map(task -> {
             if (!task.getUser().getId().equals(requester.getId()))
                 throw new AccessDeniedException("Access denied");
 
-            if (updatedTask.getTitle() != null) task.setTitle(updatedTask.getTitle());
-            if (updatedTask.getDescription() != null) task.setDescription(updatedTask.getDescription());
-            if (updatedTask.getCompleted() != null) task.setCompleted(updatedTask.getCompleted());
+            task.setTitle(updatedTask.getTitle());
+            task.setDescription(updatedTask.getDescription());
+            task.setCompleted(updatedTask.getCompleted());
+
             return _repository.save(task);
         }).orElseThrow(EntityNotFoundException::new);
     }

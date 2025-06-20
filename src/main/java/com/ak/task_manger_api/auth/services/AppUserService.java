@@ -2,6 +2,7 @@ package com.ak.task_manger_api.auth.services;
 
 import com.ak.task_manger_api.auth.models.AppUser;
 import com.ak.task_manger_api.auth.repositories.AppUserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -13,7 +14,6 @@ import org.springframework.stereotype.Service;
 
 import java.security.Principal;
 import java.util.List;
-import java.util.Optional;
 
 @Service @RequiredArgsConstructor
 public class AppUserService implements UserDetailsService {
@@ -32,8 +32,9 @@ public class AppUserService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
-    public Optional<AppUser> findUserByUsername(String username) throws UsernameNotFoundException {
-        return _repository.findByUsername(username);
+    public AppUser findUserByUsername(String username) {
+        return _repository.findByUsername(username)
+                .orElseThrow(EntityNotFoundException::new);
     }
 
     public void createUser(AppUser user){

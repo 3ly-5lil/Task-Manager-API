@@ -1,5 +1,6 @@
 package com.ak.task_manger_api.auth.configs;
 
+import com.ak.task_manger_api.auth.models.AppUser;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -18,7 +19,7 @@ import java.util.function.Function;
 public class JwtUtil {
  private final SecretKey secretKey;
 
-    public JwtUtil() {
+    private JwtUtil() {
         KeyGenerator gen;
         try {
             gen = KeyGenerator.getInstance("HmacSHA256");
@@ -28,7 +29,7 @@ public class JwtUtil {
         secretKey = gen.generateKey();
     }
 
-    public String generateToken(UserDetails user) {
+    public String generateToken(AppUser user) {
         Map<String, Object> claims = new HashMap<>();
         Date currentDate = new Date(System.currentTimeMillis());
         // millis  * 1000 = seconds * 60   = minutes * 60   = hours * 24   = days
