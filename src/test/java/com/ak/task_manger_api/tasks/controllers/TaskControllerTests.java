@@ -43,7 +43,7 @@ public class TaskControllerTests {
                 new Task(3L, "Test 3", "Desc 3", false)
         );
 
-        when(taskService.getAllTasks())
+        when(taskService.getAllOwnedTasks())
                 .thenReturn(mockTasks);
 
         mockMvc.perform(get("/tasks"))
@@ -80,7 +80,7 @@ public class TaskControllerTests {
     }
 
     @Test
-    void shouldSaveTask() throws Exception {
+    void shouldCreateTask() throws Exception {
         Task task = Task.builder()
                 .title("title")
                 .description("desc")

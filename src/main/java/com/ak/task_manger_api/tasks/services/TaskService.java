@@ -1,44 +1,57 @@
 package com.ak.task_manger_api.tasks.services;
 
+import com.ak.task_manger_api.auth.models.AppUser;
 import com.ak.task_manger_api.tasks.models.Task;
 import com.ak.task_manger_api.tasks.repositories.TaskRepository;
+import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
-@Service
+@Service @RequiredArgsConstructor
 public class TaskService {
     @Autowired
     private final TaskRepository _repository;
 
-    public TaskService(TaskRepository repository) {
-        _repository = repository;
+    public List<Task> getAllOwnedTasks(AppUser requester) {
+        return _repository.findByUserId(requester.getId());
     }
 
-    public List<Task> getAllTasks() {
-        return _repository.findAll();
+    public Task getTaskById(long id, AppUser requester) {
+        Task task = _repository.findById(id).orElseThrow(EntityNotFoundException::new);
+
+        if (!task.getUser().getId().equals(requester.getId()))
+            throw new AccessDeniedException("Access denied");
+
+        return task;
     }
 
-    public Optional<Task> getTaskById(long id) {
-        return _repository.findById(id);
-    }
-
-    public Task createTask(Task task) {
+    public Task createTask(Task task, AppUser requester) {
+        task.setUser(requester);
         return _repository.save(task);
     }
 
-    public Task updateTask(long id, Task updatedTask) throws RuntimeException {
+    public Task updateTask(long id, Task updatedTask, AppUser requester) throws RuntimeException {
         return _repository.findById(id).map(task -> {
-            task.setTitle(updatedTask.getTitle());
-            task.setDescription(updatedTask.getDescription());
-            task.setCompleted(updatedTask.isCompleted());
+            if (!task.getUser().getId().equals(requester.getId()))
+                throw new AccessDeniedException("Access denied");
+
+            if (updatedTask.getTitle() != null) task.setTitle(updatedTask.getTitle());
+            if (updatedTask.getDescription() != null) task.setDescription(updatedTask.getDescription());
+            if (updatedTask.getCompleted() != null) task.setCompleted(updatedTask.getCompleted());
             return _repository.save(task);
-        }).orElseThrow(() -> new RuntimeException("Task not found"));
+        }).orElseThrow(EntityNotFoundException::new);
     }
 
-    public void deleteTask(long id) {
+    public void deleteTask(long id, AppUser requester) {
+        _repository.findById(id).map(task -> {
+            if (!task.getUser().getId().equals(requester.getId()))
+                throw new AccessDeniedException("Access denied");
+            return task;
+        }).orElseThrow(EntityNotFoundException::new);
         _repository.deleteById(id);
     }
 }

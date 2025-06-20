@@ -2,7 +2,6 @@ package com.ak.task_manger_api.tasks.services;
 
 import com.ak.task_manger_api.tasks.models.Task;
 import com.ak.task_manger_api.tasks.repositories.TaskRepository;
-import com.ak.task_manger_api.tasks.services.TaskService;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,7 +31,7 @@ public class TaskServiceTests {
         );
         when(taskRepository.findAll()).thenReturn(mockTasks);
 
-        List<Task> result = taskService.getAllTasks();
+        List<Task> result = taskService.getAllOwnedTasks();
 
         assertEquals(mockTasks.size(), result.size());
         verify(taskRepository).findAll();

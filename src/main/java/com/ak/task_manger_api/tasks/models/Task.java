@@ -1,9 +1,8 @@
 package com.ak.task_manger_api.tasks.models;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import com.ak.task_manger_api.auth.models.AppUser;
+import com.ak.task_manger_api.tasks.DTO.TaskResponse;
+import jakarta.persistence.*;
 import lombok.*;
 
 @Data @Entity @NoArgsConstructor @AllArgsConstructor @Builder
@@ -12,5 +11,11 @@ public class Task {
     Long id;
     String title;
     String description;
-    boolean completed;
+    Boolean completed;
+    @ManyToOne @JoinColumn(name = "user_id", nullable = false)
+    AppUser user;
+
+    public TaskResponse toDTO() {
+        return new TaskResponse(id, title, description, completed, user.getId());
+    }
 }

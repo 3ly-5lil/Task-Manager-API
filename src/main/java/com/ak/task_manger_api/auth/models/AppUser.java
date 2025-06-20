@@ -1,5 +1,6 @@
 package com.ak.task_manger_api.auth.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -16,8 +17,8 @@ import lombok.NoArgsConstructor;
 public class AppUser {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String username;
+    @JsonIgnore
     private String password;
     private String role; // Example: "USER"
 }

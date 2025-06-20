@@ -11,6 +11,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,6 +25,11 @@ public class AppUserService implements UserDetailsService {
         AppUser user = _repository.findByUsername(username).orElseThrow(()->new UsernameNotFoundException("User not found"));
 
         return new User(user.getUsername(), user.getPassword(), List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole())));
+    }
+
+    public AppUser getCurrentUser(Principal principal) {
+        return _repository.findByUsername(principal.getName())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
     public Optional<AppUser> findUserByUsername(String username) throws UsernameNotFoundException {
