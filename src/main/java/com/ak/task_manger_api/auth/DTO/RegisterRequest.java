@@ -3,7 +3,9 @@ package com.ak.task_manger_api.auth.DTO;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 
+@Builder
 public record RegisterRequest(
         @NotBlank(message = "Username is required")
         @Size(min = 3, max = 20, message = "Username must be 3–20 characters long")

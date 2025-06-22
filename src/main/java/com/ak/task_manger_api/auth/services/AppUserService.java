@@ -38,7 +38,7 @@ public class AppUserService implements UserDetailsService {
                 .orElseThrow(EntityNotFoundException::new);
     }
 
-    public void createUser(AppUser user) {
-        _repository.save(user);
+    public AppUser createUser(AppUser user) {
+        return _repository.save(user);
     }
 }

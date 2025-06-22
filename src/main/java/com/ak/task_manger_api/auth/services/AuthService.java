@@ -26,7 +26,7 @@ public class AuthService {
     @Autowired
     private final AppUserService appUserService;
     @Autowired
-    private final PasswordEncoder _encoder;
+    private final PasswordEncoder passwordEncoder;
 
     public RegisterResponse register(RegisterRequest request) throws RuntimeException {
         try {
@@ -34,14 +34,14 @@ public class AuthService {
             throw new EntityExistsException("username already exists");
         } catch (EntityNotFoundException e) {
 
-            AppUser user = AppUser.builder()
-                    .username(request.username())
-                    .password(_encoder.encode(request.password()))
-                    .role("USER")
-                    .build();
+            AppUser createdUser = appUserService.createUser(
+                    AppUser.builder()
+                            .username(request.username())
+                            .password(passwordEncoder.encode(request.password()))
+                            .role("USER")
+                            .build());
 
-            appUserService.createUser(user);
-            return new RegisterResponse(user.getId(), user.getUsername(), user.getRole());
+            return new RegisterResponse(createdUser.getId(), createdUser.getUsername(), createdUser.getRole());
         }
     }
 
