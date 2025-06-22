@@ -11,11 +11,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@Entity @NoArgsConstructor
+@Entity
+@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class AppUser {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String username;
     @JsonIgnore

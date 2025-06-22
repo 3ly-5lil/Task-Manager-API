@@ -27,6 +27,7 @@ public class GlobalExceptionHandler {
     ResponseEntity<ApiErrorResponse> handleEntityExistsException(EntityExistsException exception, HttpServletRequest request) {
         return buildResponse(HttpStatus.CONFLICT, exception.getMessage(), request);
     }
+
     @ExceptionHandler(BadCredentialsException.class)
     ResponseEntity<ApiErrorResponse> handleBadCredentialsException(BadCredentialsException exception, HttpServletRequest request) {
         return buildResponse(HttpStatus.UNAUTHORIZED, "Invalid username or password", request);
@@ -43,7 +44,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(AccessDeniedException.class)
-    ResponseEntity<ApiErrorResponse> handleAccessDeniedException(AccessDeniedException exception, HttpServletRequest request){
+    ResponseEntity<ApiErrorResponse> handleAccessDeniedException(AccessDeniedException exception, HttpServletRequest request) {
         return buildResponse(HttpStatus.FORBIDDEN, exception.getMessage(), request);
     }
 

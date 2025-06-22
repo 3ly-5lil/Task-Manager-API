@@ -12,7 +12,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Service @RequiredArgsConstructor
+@Service
+@RequiredArgsConstructor
 public class TaskService {
     @Autowired
     private final TaskRepository _repository;

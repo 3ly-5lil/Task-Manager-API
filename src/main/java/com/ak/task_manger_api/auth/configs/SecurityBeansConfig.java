@@ -69,7 +69,7 @@ public class SecurityBeansConfig {
                             mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
                             response.getWriter().write(mapper.writeValueAsString(error));
-                }))
+                        }))
                 .build();
     }
 }

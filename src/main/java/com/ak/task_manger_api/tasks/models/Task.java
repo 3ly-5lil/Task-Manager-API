@@ -4,21 +4,26 @@ import com.ak.task_manger_api.auth.models.AppUser;
 import com.ak.task_manger_api.tasks.DTO.TaskRequest;
 import com.ak.task_manger_api.tasks.DTO.TaskResponse;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Data @Entity @NoArgsConstructor @AllArgsConstructor @Builder
+@Data
+@Entity
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Task {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
     String title;
     String description;
     Boolean completed;
-    @ManyToOne @JoinColumn(name = "user_id", nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
     AppUser user;
-
-    public TaskResponse toDTO() {
-        return new TaskResponse(id, title, description, completed, user.getId());
-    }
 
     static public Task fromDTO(TaskRequest taskRequest) {
         return Task.builder()
@@ -26,5 +31,9 @@ public class Task {
                 .description(taskRequest.getDescription())
                 .completed(taskRequest.getCompleted())
                 .build();
+    }
+
+    public TaskResponse toDTO() {
+        return new TaskResponse(id, title, description, completed, user.getId());
     }
 }

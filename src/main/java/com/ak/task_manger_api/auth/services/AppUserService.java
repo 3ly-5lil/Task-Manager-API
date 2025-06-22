@@ -15,14 +15,15 @@ import org.springframework.stereotype.Service;
 import java.security.Principal;
 import java.util.List;
 
-@Service @RequiredArgsConstructor
+@Service
+@RequiredArgsConstructor
 public class AppUserService implements UserDetailsService {
     @Autowired
     private final AppUserRepository _repository;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        AppUser user = _repository.findByUsername(username).orElseThrow(()->new UsernameNotFoundException("User not found"));
+        AppUser user = _repository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         return new User(user.getUsername(), user.getPassword(), List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole())));
     }
@@ -37,7 +38,7 @@ public class AppUserService implements UserDetailsService {
                 .orElseThrow(EntityNotFoundException::new);
     }
 
-    public void createUser(AppUser user){
+    public void createUser(AppUser user) {
         _repository.save(user);
     }
 }

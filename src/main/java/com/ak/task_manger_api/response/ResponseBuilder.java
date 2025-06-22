@@ -4,7 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 public class ResponseBuilder {
-    public static <T>ResponseEntity<ApiResponse<T>> ok (T data, String message) {
+    public static <T> ResponseEntity<ApiResponse<T>> ok(T data, String message) {
         return ResponseEntity.ok(
                 ApiResponse.<T>builder()
                         .status(HttpStatus.OK.value())

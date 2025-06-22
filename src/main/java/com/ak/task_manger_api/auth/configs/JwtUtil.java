@@ -17,7 +17,7 @@ import java.util.function.Function;
 
 @Component
 public class JwtUtil {
- private final SecretKey secretKey;
+    private final SecretKey secretKey;
 
     private JwtUtil() {
         KeyGenerator gen;

@@ -8,7 +8,8 @@ import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;
 
-@Data @Builder
+@Data
+@Builder
 public class ApiErrorResponse {
     private int status;
     private String error;
