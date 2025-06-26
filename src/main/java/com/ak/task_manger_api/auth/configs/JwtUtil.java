@@ -3,13 +3,13 @@ package com.ak.task_manger_api.auth.configs;
 import com.ak.task_manger_api.auth.models.AppUser;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
-import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
-import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,17 +17,8 @@ import java.util.function.Function;
 
 @Component
 public class JwtUtil {
-    private final SecretKey secretKey;
-
-    private JwtUtil() {
-        KeyGenerator gen;
-        try {
-            gen = KeyGenerator.getInstance("HmacSHA256");
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
-        secretKey = gen.generateKey();
-    }
+    @Value("${jwt.secret}")
+    String secretKey;
 
     public String generateToken(AppUser user) {
         Map<String, Object> claims = new HashMap<>();
@@ -38,18 +29,12 @@ public class JwtUtil {
 
         System.out.println("token expiry date: " + expiryDate);
 
-        return Jwts
-                .builder()
-                .claims(claims)
-                .subject(user.getUsername())
-                .issuedAt(currentDate)
-                .expiration(expiryDate)
-                .signWith(getKey())
-                .compact();
+        return Jwts.builder().claims(claims).subject(user.getUsername()).issuedAt(currentDate).expiration(expiryDate).signWith(getKey()).compact();
     }
 
     private SecretKey getKey() {
-        return Keys.hmacShaKeyFor(secretKey.getEncoded());
+        byte[] bytes = Decoders.BASE64.decode(secretKey);
+        return Keys.hmacShaKeyFor(bytes);
     }
 
     public String extractUsername(String token) {
@@ -62,11 +47,7 @@ public class JwtUtil {
     }
 
     private Claims extractAllClaims(String token) {
-        return Jwts.parser()
-                .verifyWith(getKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+        return Jwts.parser().verifyWith(getKey()).build().parseSignedClaims(token).getPayload();
     }
 
     public boolean validateToken(String token, UserDetails userDetails) {

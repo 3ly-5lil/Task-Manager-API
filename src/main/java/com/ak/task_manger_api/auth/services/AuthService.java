@@ -28,7 +28,7 @@ public class AuthService {
     @Autowired
     private final PasswordEncoder passwordEncoder;
 
-    public RegisterResponse register(RegisterRequest request) throws RuntimeException {
+    public RegisterResponse register(RegisterRequest request) throws EntityExistsException {
         try {
             appUserService.findUserByUsername(request.username());
             throw new EntityExistsException("username already exists");
