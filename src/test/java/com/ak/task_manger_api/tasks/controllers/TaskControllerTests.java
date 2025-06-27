@@ -1,144 +1,180 @@
 package com.ak.task_manger_api.tasks.controllers;
 
+import com.ak.task_manger_api.auth.configs.JwtUtil;
+import com.ak.task_manger_api.auth.models.AppUser;
+import com.ak.task_manger_api.auth.services.AppUserService;
+import com.ak.task_manger_api.tasks.DTO.TaskRequest;
 import com.ak.task_manger_api.tasks.models.Task;
 import com.ak.task_manger_api.tasks.services.TaskService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityNotFoundException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(controllers = TaskController.class)
-@ExtendWith(MockitoExtension.class)
+@SpringBootTest
 @AutoConfigureMockMvc
+@ExtendWith(MockitoExtension.class)
 public class TaskControllerTests {
+    private static final String tasksEndPoint = "/api/tasks";
     @Autowired
     MockMvc mockMvc;
     @Autowired
     ObjectMapper objectMapper;
     @MockitoBean
     TaskService taskService;
+    @MockitoBean
+    AppUserService appUserService;
+    @Autowired
+    JwtUtil jwtUtil;
+
+
+    private AppUser mockUser;
+    private String token;
+
+    @BeforeEach
+    void setUp() {
+        mockUser = AppUser.builder().id(1L).username("User_01").password("Password").role("USER").build();
+        token = jwtUtil.generateToken(mockUser);
+
+        User user = new User(mockUser.getUsername(),
+                mockUser.getPassword(),
+                List.of(new SimpleGrantedAuthority("ROLE_" + mockUser.getRole())));
+
+        when(appUserService.getCurrentUser(new UsernamePasswordAuthenticationToken(mockUser, any()))).thenReturn(mockUser);
+        when(appUserService.loadUserByUsername(mockUser.getUsername())).thenReturn(user);
+    }
 
     @Test
-    void shouldReturnAllTasks() throws Exception {
+    void shouldReturnAllOwnedTasks() throws Exception {
         List<Task> mockTasks = List.of(
-                new Task(1L, "Test 1", "Desc 1", false),
-                new Task(2L, "Test 2", "Desc 2", true),
-                new Task(3L, "Test 3", "Desc 3", false)
+                new Task(1L, "Test 1", "Desc 1", false, mockUser),
+                new Task(2L, "Test 2", "Desc 2", true, mockUser),
+                new Task(3L, "Test 3", "Desc 3", false, mockUser)
         );
 
-        when(taskService.getAllOwnedTasks())
-                .thenReturn(mockTasks);
+        when(taskService.getAllOwnedTasks(mockUser)).thenReturn(mockTasks);
 
-        mockMvc.perform(get("/tasks"))
+        mockMvc.perform(get(tasksEndPoint)
+                        .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.size()").value(3))
-                .andExpect(jsonPath("$[0].title").value("Test 1"))
-                .andExpect(jsonPath("$[1].completed").value(true));
+                .andExpect(jsonPath("$.data.size()").value(3))
+                .andExpect(jsonPath("$.data[0].title").value("Test 1"))
+                .andExpect(jsonPath("$.data[1].completed").value(true));
+    }
+
+    @Test
+    void shouldCreateTask() throws Exception {
+        TaskRequest taskRequest = new TaskRequest("title", "desc", false);
+
+        Task createdTask = new Task(1L, taskRequest.getTitle(), taskRequest.getDescription(), taskRequest.getCompleted(), mockUser);
+
+        when(taskService.createTask(taskRequest, mockUser)).thenReturn(createdTask);
+
+        mockMvc.perform(post(tasksEndPoint)
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(taskRequest)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.data.id").value(1L));
+    }
+
+    @Test
+    void shouldDeleteTask() throws Exception {
+        doNothing().when(taskService).deleteTask(0, mockUser);
+
+        mockMvc.perform(delete(tasksEndPoint + "/1")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("message").value("Task deleted successfully"));
     }
 
     @Nested
     class GetTaskByIdTest {
         @Test
-        void shouldReturnTaskIfExists() throws Exception {
-            Task task = new Task(1L, "title", "desc", false);
+        void shouldReturnTaskIfExistsAndOwned() throws Exception {
+            Task task = new Task(1L, "title", "desc", false, mockUser);
 
-            when(taskService.getTaskById(1L)).thenReturn(Optional.of(task));
+            when(taskService.getTaskById(1L, mockUser)).thenReturn(task);
 
-            mockMvc.perform(get("/tasks/1"))
+            mockMvc.perform(get(tasksEndPoint + "/1")
+                            .header("Authorization", "Bearer " + token))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.id").value("1"))
-                    .andExpect(jsonPath("$.title").value("title"))
-                    .andExpect(jsonPath("$.description").value("desc"))
-                    .andExpect(jsonPath("$.completed").value(false));
+                    .andExpect(jsonPath("$.data.id").value("1"))
+                    .andExpect(jsonPath("$.data.title").value("title"))
+                    .andExpect(jsonPath("$.data.description").value("desc"))
+                    .andExpect(jsonPath("$.data.completed").value(false));
         }
 
         @Test
         void shouldReturnNotFoundIfNotExists() throws Exception {
 
-            when(taskService.getTaskById(1000)).thenReturn(Optional.empty());
+            when(taskService.getTaskById(1000L, mockUser)).thenThrow(EntityNotFoundException.class);
 
-            mockMvc.perform(get("/tasks/1"))
+            mockMvc.perform(get(tasksEndPoint + "/1000")
+                            .header("Authorization", "Bearer " + token))
                     .andExpect(status().isNotFound());
         }
-    }
-
-    @Test
-    void shouldCreateTask() throws Exception {
-        Task task = Task.builder()
-                .title("title")
-                .description("desc")
-                .completed(false)
-                .build();
-
-        Task createdTask = new Task(1L, task.getTitle(), task.getDescription(), task.isCompleted());
-
-        when(taskService.createTask(task))
-                .thenReturn(createdTask);
-
-        mockMvc.perform(post("/tasks")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(task)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1));
     }
 
     @Nested
     class UpdateTaskTest {
         @Test
         void shouldUpdateTaskIfExists() throws Exception {
-            Task task = new Task(1L, "title", "desc", false);
-            Task updatedTask = new Task(null, "updated title", "updated desc", true);
+            Task task = new Task(1L, "title", "desc", false, mockUser);
 
-            when(taskService.updateTask(task.getId(), updatedTask)).thenAnswer(invocation -> {
+            TaskRequest taskRequest = new TaskRequest("updated title", "updated desc", true);
+
+            Task updatedTask = Task.fromDTO(taskRequest);
+
+            when(taskService.updateTask(task.getId(), taskRequest, mockUser)).thenAnswer(invocation -> {
                 updatedTask.setId(task.getId());
+                updatedTask.setUser(mockUser);
                 return updatedTask;
             });
 
-            mockMvc.perform(put("/tasks/" + task.getId())
+            mockMvc.perform(patch(tasksEndPoint + "/" + task.getId())
+                            .header("Authorization", "Bearer " + token)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(updatedTask)))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.title").value("updated title"))
-                    .andExpect(jsonPath("$.description").value("updated desc"))
-                    .andExpect(jsonPath("$.completed").value(true));
+                    .andExpect(jsonPath("$.data.title").value("updated title"))
+                    .andExpect(jsonPath("$.data.description").value("updated desc"))
+                    .andExpect(jsonPath("$.data.completed").value(true));
         }
 
         @Test
-        void shouldThrowExceptionIfNotExists() throws Exception {
-            Task updatedTask = new Task(null, "updated title", "updated desc", true);
+        void shouldThrowEntityNotFoundExceptionIfNotExists() throws Exception {
+            TaskRequest taskRequest = new TaskRequest("updated title", "updated desc", true);
 
-            when(taskService.updateTask(eq(1000), any())).thenThrow(new RuntimeException("Task not found"));
+            when(taskService.updateTask(1000, taskRequest, mockUser))
+                    .thenThrow(EntityNotFoundException.class);
 
-            mockMvc.perform(put("/tasks/1000")
+            mockMvc.perform(patch(tasksEndPoint + "/1000")
+                            .header("Authorization", "Bearer " + token)
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(updatedTask)))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(content().string("Task not found"));
+                            .content(objectMapper.writeValueAsString(taskRequest)))
+                    .andExpect(status().isNotFound());
         }
-    }
-
-    @Test
-    void shouldDeleteTask() throws Exception {
-        doNothing().when(taskService).deleteTask(0);
-
-        mockMvc.perform(delete("/tasks/1"))
-                .andExpect(status().isNoContent());
     }
 }

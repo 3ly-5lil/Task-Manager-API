@@ -9,6 +9,7 @@ import com.ak.task_manger_api.response.ResponseBuilder;
 import jakarta.persistence.EntityExistsException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -18,9 +19,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
+    @Autowired
     private final AuthService authService;
 
     @PostMapping("/register")
@@ -32,6 +34,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) throws BadCredentialsException {
-        return ResponseEntity.ok(authService.login(request));
+        return ResponseBuilder.ok(authService.login(request),
+                "User logged in successfully");
     }
 }

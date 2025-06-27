@@ -92,7 +92,7 @@ public class AuthServiceTests {
 
             // Assert
             assertEquals(user.getId(), response.userId());
-            assertEquals(token, response.Token());
+            assertEquals(token, response.token());
         }
 
         @Test

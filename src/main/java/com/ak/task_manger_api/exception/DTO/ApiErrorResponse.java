@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @Builder
 public class ApiErrorResponse {
     private int status;
+    private Class<?> type;
     private String error;
     private String message;
     private String path;
@@ -19,12 +20,14 @@ public class ApiErrorResponse {
 
     public static ResponseEntity<ApiErrorResponse> buildResponse(
             HttpStatus status,
+            Exception exception,
             String message,
             HttpServletRequest request) {
 
         ApiErrorResponse response = ApiErrorResponse.builder()
                 .status(status.value())
                 .error(status.getReasonPhrase())
+                .type(exception.getClass())
                 .message(message)
                 .path(request.getRequestURI())
                 .timestamp(LocalDateTime.now())

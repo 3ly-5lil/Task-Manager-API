@@ -25,27 +25,27 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(EntityExistsException.class)
     ResponseEntity<ApiErrorResponse> handleEntityExistsException(EntityExistsException exception, HttpServletRequest request) {
-        return buildResponse(HttpStatus.CONFLICT, exception.getMessage(), request);
+        return buildResponse(HttpStatus.CONFLICT, exception, exception.getMessage(), request);
     }
 
     @ExceptionHandler(BadCredentialsException.class)
     ResponseEntity<ApiErrorResponse> handleBadCredentialsException(BadCredentialsException exception, HttpServletRequest request) {
-        return buildResponse(HttpStatus.UNAUTHORIZED, "Invalid username or password", request);
+        return buildResponse(HttpStatus.UNAUTHORIZED, exception, "Invalid username or password", request);
     }
 
     @ExceptionHandler(UsernameNotFoundException.class)
     ResponseEntity<ApiErrorResponse> handleUsernameNotFoundException(UsernameNotFoundException exception, HttpServletRequest request) {
-        return buildResponse(HttpStatus.NOT_FOUND, exception.getMessage(), request);
+        return buildResponse(HttpStatus.NOT_FOUND, exception, exception.getMessage(), request);
     }
 
     @ExceptionHandler(EntityNotFoundException.class)
     ResponseEntity<ApiErrorResponse> handleEntityNotFoundException(EntityNotFoundException exception, HttpServletRequest request) {
-        return buildResponse(HttpStatus.NOT_FOUND, exception.getMessage(), request);
+        return buildResponse(HttpStatus.NOT_FOUND, exception, exception.getMessage(), request);
     }
 
     @ExceptionHandler(AccessDeniedException.class)
     ResponseEntity<ApiErrorResponse> handleAccessDeniedException(AccessDeniedException exception, HttpServletRequest request) {
-        return buildResponse(HttpStatus.FORBIDDEN, exception.getMessage(), request);
+        return buildResponse(HttpStatus.FORBIDDEN, exception, exception.getMessage(), request);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -55,12 +55,12 @@ public class GlobalExceptionHandler {
                 .map(field -> field.getField() + ": " + field.getDefaultMessage())
                 .collect(Collectors.joining(", "));
 
-        return buildResponse(HttpStatus.BAD_REQUEST, errorMessage, request);
+        return buildResponse(HttpStatus.BAD_REQUEST, exception, errorMessage, request);
     }
 
     @ExceptionHandler(Exception.class)
     ResponseEntity<ApiErrorResponse> handleGenericException(Exception exception, HttpServletRequest request) {
         logger.error("Unexpected error", exception);
-        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected error", request);
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, exception, "Unexpected error", request);
     }
 }
