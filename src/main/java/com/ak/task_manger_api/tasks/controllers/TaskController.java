@@ -3,6 +3,7 @@ package com.ak.task_manger_api.tasks.controllers;
 import com.ak.task_manger_api.auth.models.AppUser;
 import com.ak.task_manger_api.auth.services.AppUserService;
 import com.ak.task_manger_api.response.ApiResponse;
+import com.ak.task_manger_api.response.PaginatedResponse;
 import com.ak.task_manger_api.response.ResponseBuilder;
 import com.ak.task_manger_api.tasks.DTO.TaskRequest;
 import com.ak.task_manger_api.tasks.DTO.TaskResponse;
@@ -11,11 +12,11 @@ import com.ak.task_manger_api.tasks.services.TaskService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/tasks")
@@ -27,10 +28,15 @@ public class TaskController {
     private final AppUserService appUserService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<TaskResponse>>> getAllOwnedTasks(Principal principal) {
+    public ResponseEntity<ApiResponse<PaginatedResponse<TaskResponse>>> getAllOwnedTasks(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            Principal principal
+    ) {
         AppUser user = appUserService.getCurrentUser(principal);
-//        return _service.getAllOwnedTasks(user).stream().map(Task::toDTO).toList();
-        return ResponseBuilder.ok(_service.getAllOwnedTasks(user).stream().map(Task::toDTO).toList(),
+        Page<TaskResponse> tasksPage = _service.getAllOwnedTasks(user, page, size).map(Task::toDTO);
+        PaginatedResponse<TaskResponse> paginatedResponse = new PaginatedResponse<>(tasksPage);
+        return ResponseBuilder.ok(paginatedResponse,
                 "Tasks fetched successfully");
     }
 

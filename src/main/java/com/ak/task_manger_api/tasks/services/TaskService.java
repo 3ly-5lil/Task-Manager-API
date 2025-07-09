@@ -7,10 +7,12 @@ import com.ak.task_manger_api.tasks.repositories.TaskRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -18,8 +20,9 @@ public class TaskService {
     @Autowired
     private final TaskRepository _repository;
 
-    public List<Task> getAllOwnedTasks(AppUser requester) {
-        return _repository.findByUserId(requester.getId());
+    public Page<Task> getAllOwnedTasks(AppUser requester, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
+        return _repository.findByUserId(requester.getId(), pageable);
     }
 
     public Task getTaskById(long id, AppUser requester) {

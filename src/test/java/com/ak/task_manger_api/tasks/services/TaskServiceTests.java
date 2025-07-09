@@ -12,6 +12,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.security.access.AccessDeniedException;
 
 import java.util.List;
@@ -42,12 +44,13 @@ public class TaskServiceTests {
                 new Task(3L, "Test 3", "Desc 3", false, mockUser),
                 new Task(3L, "Test 3", "Desc 3", false, new AppUser(0L, null, null, null))
         );
-        when(taskRepository.findByUserId(mockUser.getId())).thenReturn(mockTasks.subList(0, 3));
 
-        List<Task> result = taskService.getAllOwnedTasks(mockUser);
+        when(taskRepository.findByUserId(eq(mockUser.getId()), any())).thenReturn(new PageImpl<>(mockTasks.subList(0, 3)));
 
-        assertEquals(mockTasks.size() - 1, result.size());
-        verify(taskRepository).findByUserId(mockUser.getId());
+        Page<Task> result = taskService.getAllOwnedTasks(mockUser, 0, 10);
+
+        assertEquals(mockTasks.size() - 1, result.getTotalElements());
+        verify(taskRepository).findByUserId(eq(mockUser.getId()), any());
     }
 
     @Test

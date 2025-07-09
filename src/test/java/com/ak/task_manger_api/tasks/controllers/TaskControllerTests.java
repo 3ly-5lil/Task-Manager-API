@@ -16,6 +16,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -67,20 +69,28 @@ public class TaskControllerTests {
 
     @Test
     void shouldReturnAllOwnedTasks() throws Exception {
-        List<Task> mockTasks = List.of(
+        List<Task> tasks = List.of(
                 new Task(1L, "Test 1", "Desc 1", false, mockUser),
                 new Task(2L, "Test 2", "Desc 2", true, mockUser),
                 new Task(3L, "Test 3", "Desc 3", false, mockUser)
         );
 
-        when(taskService.getAllOwnedTasks(mockUser)).thenReturn(mockTasks);
+        Page<Task> taskPage = new PageImpl<>(tasks);
+
+        when(taskService.getAllOwnedTasks(mockUser, 0, 10)).thenReturn(taskPage);
 
         mockMvc.perform(get(tasksEndPoint)
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.size()").value(3))
-                .andExpect(jsonPath("$.data[0].title").value("Test 1"))
-                .andExpect(jsonPath("$.data[1].completed").value(true));
+                .andExpect(jsonPath("$.data.size()").value(6))
+                .andExpect(jsonPath("$.data.pageNumber").value(0))
+                .andExpect(jsonPath("$.data.pageSize").value(3))
+                .andExpect(jsonPath("$.data.totalPages").value(1))
+                .andExpect(jsonPath("$.data.numberOfElements").value(3))
+                .andExpect(jsonPath("$.data.totalElements").value(3))
+                .andExpect(jsonPath("$.data.content.size()").value(3))
+                .andExpect(jsonPath("$.data.content[0].title").value("Test 1"))
+                .andExpect(jsonPath("$.data.content[1].completed").value(true));
     }
 
     @Test
