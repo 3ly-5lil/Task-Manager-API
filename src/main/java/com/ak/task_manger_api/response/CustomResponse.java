@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class ApiResponse<T> {
+public class CustomResponse<T> {
     private int status;
     private String message;
     private T data;
