@@ -110,6 +110,6 @@ public class TaskController {
     ) {
         AppUser user = appUserService.getCurrentUser(principal);
         _service.deleteTask(id, user);
-        return ResponseBuilder.ok(null, "Task deleted successfully");
+        return ResponseBuilder.noContent("Task deleted successfully");
     }
 }

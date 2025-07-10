@@ -53,7 +53,6 @@ public class SecurityBeansConfig {
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint((request, response, authException) -> {
                             ApiErrorResponse error = ApiErrorResponse.builder()
-                                    .status(HttpStatus.UNAUTHORIZED.value())
                                     .path(request.getRequestURI())
                                     .error("Unauthorized access")
                                     .message("Invalid token")

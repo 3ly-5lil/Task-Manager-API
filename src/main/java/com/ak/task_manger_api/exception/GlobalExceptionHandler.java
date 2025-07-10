@@ -1,6 +1,7 @@
 package com.ak.task_manger_api.exception;
 
 import com.ak.task_manger_api.exception.DTO.ApiErrorResponse;
+import com.ak.task_manger_api.exception.DTO.FieldError;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,7 +16,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.util.stream.Collectors;
+import java.util.List;
 
 import static com.ak.task_manger_api.exception.DTO.ApiErrorResponse.buildResponse;
 
@@ -51,11 +52,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     ResponseEntity<ApiErrorResponse> handleValidationException(MethodArgumentNotValidException exception, HttpServletRequest request) {
 
-        String errorMessage = exception.getBindingResult().getFieldErrors().stream()
-                .map(field -> field.getField() + ": " + field.getDefaultMessage())
-                .collect(Collectors.joining(", "));
+        List<FieldError> fieldErrors = exception.getBindingResult().getFieldErrors().stream()
+                .map(field -> new FieldError(field.getField(), field.getDefaultMessage()))
+                .toList();
 
-        return buildResponse(HttpStatus.BAD_REQUEST, exception, errorMessage, request);
+        return buildResponse(HttpStatus.UNPROCESSABLE_ENTITY, exception, "Validation failed", request, fieldErrors);
     }
 
     @ExceptionHandler(Exception.class)

@@ -19,7 +19,6 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.hamcrest.Matchers.containsString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -53,14 +52,15 @@ public class AuthControllerTests {
         void shouldThrowMethodArgumentNotValidExceptionWhenParamsNotValid() throws Exception {
             RegisterRequest request = new RegisterRequest("User 01", "123");
 
-            when(authService.register(request)).thenThrow(EntityExistsException.class);
-
             mockMvc.perform(post(registerUri)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.message", containsString("username:")))
-                    .andExpect(jsonPath("$.message", containsString("password:")));
+                    .andExpect(status().isUnprocessableEntity())
+                    .andExpect(jsonPath("$.success").value(false))
+                    .andExpect(jsonPath("$.message").value("Validation failed"))
+                    .andExpect(jsonPath("$.details").isArray())
+                    .andExpect(jsonPath("$.details[0].field").exists())
+                    .andExpect(jsonPath("$.details[0].error").exists());
         }
 
         @Test

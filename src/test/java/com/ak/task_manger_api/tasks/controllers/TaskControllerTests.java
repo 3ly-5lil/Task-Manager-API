@@ -94,22 +94,6 @@ public class TaskControllerTests {
     }
 
     @Test
-    void shouldCreateTask() throws Exception {
-        TaskRequest taskRequest = new TaskRequest("title", "desc", false);
-
-        Task createdTask = new Task(1L, taskRequest.getTitle(), taskRequest.getDescription(), taskRequest.getCompleted(), mockUser);
-
-        when(taskService.createTask(taskRequest, mockUser)).thenReturn(createdTask);
-
-        mockMvc.perform(post(tasksEndPoint)
-                        .header("Authorization", "Bearer " + token)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(taskRequest)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.data.id").value(1L));
-    }
-
-    @Test
     void shouldDeleteTask() throws Exception {
         doNothing().when(taskService).deleteTask(0, mockUser);
 
@@ -117,6 +101,43 @@ public class TaskControllerTests {
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("message").value("Task deleted successfully"));
+    }
+
+    @Nested
+    class CreateTaskTests {
+        @Test
+        void shouldReturnValidationError() throws Exception {
+            TaskRequest taskRequest = new TaskRequest("", "", null);
+
+            mockMvc.perform(post(tasksEndPoint)
+                            .header("Authorization", "Bearer " + token)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(taskRequest)))
+                    .andExpect(status().isUnprocessableEntity())
+                    .andExpect(status().isUnprocessableEntity())
+                    .andExpect(jsonPath("$.success").value(false))
+                    .andExpect(jsonPath("$.message").value("Validation failed"))
+                    .andExpect(jsonPath("$.details").isArray())
+                    .andExpect(jsonPath("$.details[0].field").exists())
+                    .andExpect(jsonPath("$.details[0].error").exists());
+            ;
+        }
+
+        @Test
+        void shouldCreateTask() throws Exception {
+            TaskRequest taskRequest = new TaskRequest("title", "desc", false);
+
+            Task createdTask = new Task(1L, taskRequest.getTitle(), taskRequest.getDescription(), taskRequest.getCompleted(), mockUser);
+
+            when(taskService.createTask(taskRequest, mockUser)).thenReturn(createdTask);
+
+            mockMvc.perform(post(tasksEndPoint)
+                            .header("Authorization", "Bearer " + token)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(taskRequest)))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.data.id").value(1L));
+        }
     }
 
     @Nested
