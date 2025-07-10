@@ -23,3 +23,12 @@ ALTER TABLE task
         FOREIGN KEY (user_id)
         REFERENCES app_user(id)
         ON DELETE CASCADE;
+
+-- Audit fields
+ALTER TABLE task
+    ADD COLUMN created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    ADD COLUMN updated_at TIMESTAMP NOT NULL DEFAULT NOW();
+
+-- For soft delete
+ALTER TABLE task
+    ADD COLUMN deleted BOOLEAN NOT NULL DEFAULT FALSE;

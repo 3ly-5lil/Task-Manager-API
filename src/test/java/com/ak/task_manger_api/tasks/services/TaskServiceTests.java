@@ -16,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.security.access.AccessDeniedException;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,18 +40,18 @@ public class TaskServiceTests {
     @Test
     void shouldReturnAllTask() {
         List<Task> mockTasks = List.of(
-                new Task(1L, "Test 1", "Desc 1", false, mockUser),
-                new Task(2L, "Test 2", "Desc 2", true, mockUser),
-                new Task(3L, "Test 3", "Desc 3", false, mockUser),
-                new Task(3L, "Test 3", "Desc 3", false, new AppUser(0L, null, null, null))
+                new Task(1L, "Test 1", "Desc 1", false, mockUser, LocalDateTime.now(), LocalDateTime.now(), false),
+                new Task(2L, "Test 2", "Desc 2", true, mockUser, LocalDateTime.now(), LocalDateTime.now(), false),
+                new Task(3L, "Test 3", "Desc 3", false, mockUser, LocalDateTime.now(), LocalDateTime.now(), false),
+                new Task(3L, "Test 3", "Desc 3", false, new AppUser(0L, null, null, null, LocalDateTime.now(), LocalDateTime.now()), LocalDateTime.now(), LocalDateTime.now(), false)
         );
 
-        when(taskRepository.findByUserId(eq(mockUser.getId()), any())).thenReturn(new PageImpl<>(mockTasks.subList(0, 3)));
+        when(taskRepository.findByUserAndDeletedFalse(eq(mockUser), any())).thenReturn(new PageImpl<>(mockTasks.subList(0, 3)));
 
         Page<Task> result = taskService.getAllOwnedTasks(mockUser, 0, 10);
 
         assertEquals(mockTasks.size() - 1, result.getTotalElements());
-        verify(taskRepository).findByUserId(eq(mockUser.getId()), any());
+        verify(taskRepository).findByUserAndDeletedFalse(eq(mockUser), any());
     }
 
     @Test
@@ -59,7 +60,7 @@ public class TaskServiceTests {
         Task task = Task.fromDTO(taskRequest);
         task.setUser(mockUser);
 
-        Task createdTask = new Task(1L, task.getTitle(), task.getDescription(), task.getCompleted(), mockUser);
+        Task createdTask = new Task(1L, task.getTitle(), task.getDescription(), task.getCompleted(), mockUser, LocalDateTime.now(), LocalDateTime.now(), false);
 
         when(taskRepository.save(task)).thenReturn(createdTask);
 
@@ -71,40 +72,52 @@ public class TaskServiceTests {
         verify(taskRepository).save(task);
     }
 
+    @Test
+    void shouldRestoreTask() {
+        Task task = Task.builder()
+                .id(1L)
+                .title("Deleted Task")
+                .description("Some desc")
+                .completed(false)
+                .deleted(true)
+                .user(mockUser)
+                .build();
+
+        when(taskRepository.findByIdAndUserAndDeletedTrue(1L, mockUser))
+                .thenReturn(Optional.of(task));
+        when(taskRepository.save(task))
+                .thenReturn(task);
+
+        Task restored = taskService.restoreTask(1L, mockUser);
+
+        assertFalse(restored.getDeleted());
+        verify(taskRepository).save(task);
+
+    }
+
     @Nested
     class DeleteTaskTests {
         @Test
         void shouldDeleteTaskWhenExistAndOwned() {
-            Task mockedTask = new Task(1L, "Task", "Desc", false, mockUser);
+            Task mockedTask = new Task(1L, "Task", "Desc", false, mockUser, LocalDateTime.now(), LocalDateTime.now(), false);
 
-            when(taskRepository.findById(mockedTask.getId())).thenReturn(Optional.of(mockedTask));
-            doNothing().when(taskRepository).deleteById(mockedTask.getId());
+            when(taskRepository.findByIdAndUserAndDeletedFalse(mockedTask.getId(), mockUser)).thenReturn(Optional.of(mockedTask));
 
             taskService.deleteTask(mockedTask.getId(), mockUser);
 
-            verify(taskRepository).deleteById(mockedTask.getId());
-        }
-
-        @Test
-        void shouldThrowAccessDeniedExceptionWhenTaskNotOwned() {
-            Task mockedTask = new Task(1L, "Task", "Desc", false, AppUser.builder().id(0L).build());
-
-            when(taskRepository.findById(mockedTask.getId())).thenReturn(Optional.of(mockedTask));
-
-            assertThrows(AccessDeniedException.class, () -> taskService.deleteTask(mockedTask.getId(), mockUser));
-
-            verify(taskRepository, never()).deleteById(mockedTask.getId());
+            assertTrue(mockedTask.getDeleted());
+            verify(taskRepository).save(mockedTask);
         }
 
         @Test
         void shouldThrowEntityNotFoundExceptionWhenTaskNotExists() {
-            Task mockedTask = new Task(1000L, "Task", "Desc", false, null);
+            Task mockedTask = new Task(1000L, "Task", "Desc", false, null, LocalDateTime.now(), LocalDateTime.now(), false);
 
-            when(taskRepository.findById(mockedTask.getId())).thenThrow(EntityNotFoundException.class);
+            when(taskRepository.findByIdAndUserAndDeletedFalse(mockedTask.getId(), mockUser)).thenThrow(EntityNotFoundException.class);
 
             assertThrows(EntityNotFoundException.class, () -> taskService.deleteTask(mockedTask.getId(), mockUser));
 
-            verify(taskRepository, never()).deleteById(mockedTask.getId());
+            verify(taskRepository, never()).save(any());
         }
     }
 
@@ -112,34 +125,22 @@ public class TaskServiceTests {
     class GetTaskByIdTests {
         @Test
         void shouldReturnTaskWhenExists() {
-            Task task = new Task(1L, "title", "desc", false, mockUser);
-            when(taskRepository.findById(1L)).thenReturn(Optional.of(task));
+            Task task = new Task(1L, "title", "desc", false, mockUser, LocalDateTime.now(), LocalDateTime.now(), false);
+            when(taskRepository.findByIdAndUserAndDeletedFalse(1L, mockUser)).thenReturn(Optional.of(task));
 
             Task result = taskService.getTaskById(1L, mockUser);
 
             assertEquals(task, result);
-            verify(taskRepository).findById(1L);
+            verify(taskRepository).findByIdAndUserAndDeletedFalse(1L, mockUser);
         }
 
         @Test
         void shouldThrowEntityNotFoundExceptionWhenNotExists() {
-            when(taskRepository.findById(100L)).thenReturn(Optional.empty());
+            when(taskRepository.findByIdAndUserAndDeletedFalse(100L, mockUser)).thenReturn(Optional.empty());
 
-            assertThrows(EntityNotFoundException.class, () -> taskService.getTaskById(100L, eq(mockUser)));
+            assertThrows(EntityNotFoundException.class, () -> taskService.getTaskById(100L, mockUser));
 
-            verify(taskRepository).findById(100L);
-        }
-
-        @Test
-        void shouldThrowAccessDeniedExceptionWhenNotOwned() {
-            var actualOwner = AppUser.builder().id(100L).build();
-            var mockTask = new Task(100L, "T", "D", false, actualOwner);
-
-            when(taskRepository.findById(100L)).thenReturn(Optional.of(mockTask));
-
-            assertThrows(AccessDeniedException.class, () -> taskService.getTaskById(100L, mockUser));
-
-            verify(taskRepository).findById(100L);
+            verify(taskRepository).findByIdAndUserAndDeletedFalse(100L, mockUser);
         }
     }
 
@@ -147,7 +148,7 @@ public class TaskServiceTests {
     class UpdateTaskTests {
         @Test
         void shouldUpdateTaskWhenExists() {
-            Task task = new Task(44L, "title", "desc", false, mockUser);
+            Task task = new Task(44L, "title", "desc", false, mockUser, LocalDateTime.now(), LocalDateTime.now(), false);
             TaskRequest taskRequest = new TaskRequest("updated title", "desc", true);
 
             Task updatedTask = Task.fromDTO(taskRequest);
@@ -183,7 +184,7 @@ public class TaskServiceTests {
         @Test
         void shouldThrowAccessDeniedExceptionWhenNotOwned() {
             var actualOwner = AppUser.builder().id(100L).build();
-            var mockTask = new Task(100L, "T", "D", false, actualOwner);
+            var mockTask = new Task(100L, "T", "D", false, actualOwner, LocalDateTime.now(), LocalDateTime.now(), false);
 
             when(taskRepository.findById(100L)).thenReturn(Optional.of(mockTask));
 

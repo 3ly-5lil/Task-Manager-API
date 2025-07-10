@@ -5,6 +5,7 @@ import com.ak.task_manger_api.auth.models.AppUser;
 import com.ak.task_manger_api.auth.services.AppUserService;
 import com.ak.task_manger_api.tasks.DTO.TaskRequest;
 import com.ak.task_manger_api.tasks.models.Task;
+import com.ak.task_manger_api.tasks.repositories.TaskRepository;
 import com.ak.task_manger_api.tasks.services.TaskService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
@@ -25,6 +26,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -47,6 +49,8 @@ public class TaskControllerTests {
     TaskService taskService;
     @MockitoBean
     AppUserService appUserService;
+    @MockitoBean
+    TaskRepository taskRepository;
     @Autowired
     JwtUtil jwtUtil;
 
@@ -70,9 +74,9 @@ public class TaskControllerTests {
     @Test
     void shouldReturnAllOwnedTasks() throws Exception {
         List<Task> tasks = List.of(
-                new Task(1L, "Test 1", "Desc 1", false, mockUser),
-                new Task(2L, "Test 2", "Desc 2", true, mockUser),
-                new Task(3L, "Test 3", "Desc 3", false, mockUser)
+                new Task(1L, "Test 1", "Desc 1", false, mockUser, LocalDateTime.now(), LocalDateTime.now(), false),
+                new Task(2L, "Test 2", "Desc 2", true, mockUser, LocalDateTime.now(), LocalDateTime.now(), false),
+                new Task(3L, "Test 3", "Desc 3", false, mockUser, LocalDateTime.now(), LocalDateTime.now(), false)
         );
 
         Page<Task> taskPage = new PageImpl<>(tasks);
@@ -103,6 +107,27 @@ public class TaskControllerTests {
                 .andExpect(jsonPath("message").value("Task deleted successfully"));
     }
 
+    @Test
+    void shouldRestoreTask() throws Exception {
+        Task task = Task.builder()
+                .id(1L)
+                .title("Deleted Task")
+                .description("Some desc")
+                .completed(false)
+                .deleted(true)
+                .user(mockUser)
+                .build();
+
+        when(taskService.restoreTask(1L, mockUser)).thenReturn(task);
+
+        taskService.restoreTask(1L, mockUser);
+
+        mockMvc.perform(patch(tasksEndPoint + "/1/restore")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("message").value("Task restored successfully"));
+    }
+
     @Nested
     class CreateTaskTests {
         @Test
@@ -127,7 +152,7 @@ public class TaskControllerTests {
         void shouldCreateTask() throws Exception {
             TaskRequest taskRequest = new TaskRequest("title", "desc", false);
 
-            Task createdTask = new Task(1L, taskRequest.getTitle(), taskRequest.getDescription(), taskRequest.getCompleted(), mockUser);
+            Task createdTask = new Task(1L, taskRequest.getTitle(), taskRequest.getDescription(), taskRequest.getCompleted(), mockUser, LocalDateTime.now(), LocalDateTime.now(), false);
 
             when(taskService.createTask(taskRequest, mockUser)).thenReturn(createdTask);
 
@@ -144,7 +169,7 @@ public class TaskControllerTests {
     class GetTaskByIdTest {
         @Test
         void shouldReturnTaskIfExistsAndOwned() throws Exception {
-            Task task = new Task(1L, "title", "desc", false, mockUser);
+            Task task = new Task(1L, "title", "desc", false, mockUser, LocalDateTime.now(), LocalDateTime.now(), false);
 
             when(taskService.getTaskById(1L, mockUser)).thenReturn(task);
 
@@ -172,7 +197,7 @@ public class TaskControllerTests {
     class UpdateTaskTest {
         @Test
         void shouldUpdateTaskIfExists() throws Exception {
-            Task task = new Task(1L, "title", "desc", false, mockUser);
+            Task task = new Task(1L, "title", "desc", false, mockUser, LocalDateTime.now(), LocalDateTime.now(), false);
 
             TaskRequest taskRequest = new TaskRequest("updated title", "updated desc", true);
 

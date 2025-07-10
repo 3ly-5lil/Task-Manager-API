@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -29,8 +30,8 @@ public class AppUserServiceTests {
 
     @Test
     void shouldCreateUser() {
-        AppUser user = new AppUser(null, "name", "password", "USER");
-        AppUser mockedUser = new AppUser(1L, "name", "password", "USER");
+        AppUser user = new AppUser(null, "name", "password", "USER", LocalDateTime.now(), LocalDateTime.now());
+        AppUser mockedUser = new AppUser(1L, "name", "password", "USER", LocalDateTime.now(), LocalDateTime.now());
 
         when(repository.save(user)).thenReturn(mockedUser);
 
@@ -44,7 +45,7 @@ public class AppUserServiceTests {
         @Test
         void shouldReturnUserDetailsWhenUserExists() {
             // Arrange
-            AppUser user = new AppUser(1L, "name", "password", "USER");
+            AppUser user = new AppUser(1L, "name", "password", "USER", LocalDateTime.now(), LocalDateTime.now());
 
             when(repository.findByUsername(user.getUsername())).thenReturn(Optional.of(user));
 
@@ -69,7 +70,7 @@ public class AppUserServiceTests {
         @Test
         void shouldReturnCurrentUserWhenUserExists() {
             Principal mockPrinciple = () -> "TestUser";
-            var expectedUser = new AppUser(1L, "user", "Password", "USER");
+            var expectedUser = new AppUser(1L, "user", "Password", "USER", LocalDateTime.now(), LocalDateTime.now());
 
             when(repository.findByUsername(mockPrinciple.getName())).thenReturn(Optional.of(expectedUser));
 
@@ -94,7 +95,7 @@ public class AppUserServiceTests {
         @Test
         void shouldReturnUserDetailsWhenUserExists() {
             // Arrange
-            AppUser user = new AppUser(1L, "name", "password", "USER");
+            AppUser user = new AppUser(1L, "name", "password", "USER", LocalDateTime.now(), LocalDateTime.now());
 
             when(repository.findByUsername(user.getUsername())).thenReturn(Optional.of(user));
 

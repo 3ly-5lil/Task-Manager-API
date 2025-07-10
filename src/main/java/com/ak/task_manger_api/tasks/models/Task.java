@@ -8,6 +8,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
 
 @Data
 @Entity
@@ -24,6 +29,17 @@ public class Task {
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     AppUser user;
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
+    @ColumnDefault("NOW()")
+    private LocalDateTime createdAt;
+    @UpdateTimestamp
+    @Column(nullable = false)
+    @ColumnDefault("NOW()")
+    private LocalDateTime updatedAt;
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean deleted = false;
 
     static public Task fromDTO(TaskRequest taskRequest) {
         return Task.builder()
@@ -34,6 +50,6 @@ public class Task {
     }
 
     public TaskResponse toDTO() {
-        return new TaskResponse(id, title, description, completed, user.getId());
+        return new TaskResponse(id, title, description, completed, createdAt, updatedAt);
     }
 }

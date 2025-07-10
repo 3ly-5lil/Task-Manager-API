@@ -1,14 +1,16 @@
 package com.ak.task_manger_api.auth.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
 
 @Data
 @Entity
@@ -23,4 +25,12 @@ public class AppUser {
     @JsonIgnore
     private String password;
     private String role; // Example: "USER"
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
+    @ColumnDefault("NOW()")
+    private LocalDateTime createdAt;
+    @UpdateTimestamp
+    @Column(nullable = false)
+    @ColumnDefault("NOW()")
+    private LocalDateTime updatedAt;
 }

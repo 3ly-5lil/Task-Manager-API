@@ -22,16 +22,12 @@ public class TaskService {
 
     public Page<Task> getAllOwnedTasks(AppUser requester, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
-        return _repository.findByUserId(requester.getId(), pageable);
+        return _repository.findByUserAndDeletedFalse(requester, pageable);
     }
 
     public Task getTaskById(long id, AppUser requester) {
-        Task task = _repository.findById(id).orElseThrow(EntityNotFoundException::new);
 
-        if (!task.getUser().getId().equals(requester.getId()))
-            throw new AccessDeniedException("Access denied");
-
-        return task;
+        return _repository.findByIdAndUserAndDeletedFalse(id, requester).orElseThrow(EntityNotFoundException::new);
     }
 
     public Task createTask(TaskRequest task, AppUser requester) {
@@ -54,11 +50,16 @@ public class TaskService {
     }
 
     public void deleteTask(long id, AppUser requester) {
-        _repository.findById(id).map(task -> {
-            if (!task.getUser().getId().equals(requester.getId()))
-                throw new AccessDeniedException("Access denied");
-            return task;
-        }).orElseThrow(EntityNotFoundException::new);
-        _repository.deleteById(id);
+        Task task = _repository.findByIdAndUserAndDeletedFalse(id, requester).orElseThrow(EntityNotFoundException::new);
+        task.setDeleted(true);
+        _repository.save(task);
+    }
+
+    public Task restoreTask(long id, AppUser user) {
+        Task task = _repository.findByIdAndUserAndDeletedTrue(id, user)
+                .orElseThrow(() -> new EntityNotFoundException("Deleted task not found"));
+
+        task.setDeleted(false);
+        return _repository.save(task);
     }
 }

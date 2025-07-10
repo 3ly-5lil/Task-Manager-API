@@ -4,6 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.time.LocalDateTime;
+
 @AllArgsConstructor
 @Getter
 @Schema(description = "Response DTO for a Task")
@@ -16,6 +18,8 @@ public class TaskResponse {
     private String description;
     @Schema(description = "Completion status", example = "false")
     private Boolean completed;
-    @Schema(description = "The user id associated with the task", example = "false")
-    private Long userId;
+    @Schema(description = "Creation timestamp", example = "2025-06-20T12:00:00")
+    private LocalDateTime createdAt;
+    @Schema(description = "Last update timestamp", example = "2025-06-21T18:30:00")
+    private LocalDateTime updatedAt;
 }

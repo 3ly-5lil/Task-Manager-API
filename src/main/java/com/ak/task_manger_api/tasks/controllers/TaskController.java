@@ -112,4 +112,20 @@ public class TaskController {
         _service.deleteTask(id, user);
         return ResponseBuilder.noContent("Task deleted successfully");
     }
+
+    @Operation(summary = "Restore task", description = "Restore a deleted task for the authenticated user.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Task restored successfully"),
+            @ApiResponse(responseCode = "404", description = "Task not found"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - JWT token is missing or invalid")
+    })
+    @PatchMapping("/{id}/restore")
+    public ResponseEntity<CustomResponse<TaskResponse>> restore(
+            @Parameter(description = "Task ID") @PathVariable int id,
+            Principal principal
+    ) {
+        AppUser user = appUserService.getCurrentUser(principal);
+        Task restoredTask = _service.restoreTask(id, user);
+        return ResponseBuilder.ok(restoredTask.toDTO(), "Task restored successfully");
+    }
 }

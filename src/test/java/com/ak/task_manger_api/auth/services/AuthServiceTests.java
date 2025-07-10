@@ -18,6 +18,8 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.time.LocalDateTime;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -46,7 +48,7 @@ public class AuthServiceTests {
                     .password("TestPassword")
                     .build();
 
-            AppUser createdUser = new AppUser(1L, "TestUser", "Hashed(TestPassword)", "USER");
+            AppUser createdUser = new AppUser(1L, "TestUser", "Hashed(TestPassword)", "USER", LocalDateTime.now(), LocalDateTime.now());
 
             when(appUserService.findUserByUsername(request.username())).thenThrow(EntityNotFoundException.class);
             when(appUserService.createUser(any(AppUser.class))).thenReturn(createdUser);
@@ -81,7 +83,7 @@ public class AuthServiceTests {
         void shouldLoginSuccessfully() {
             // Arrange
             var request = new LoginRequest("TestUser", "TestPass");
-            var user = new AppUser(1L, request.username(), "", "USER");
+            var user = new AppUser(1L, request.username(), "", "USER", LocalDateTime.now(), LocalDateTime.now());
             var token = "TOKEN";
 
             when(appUserService.findUserByUsername(request.username())).thenReturn(user);
