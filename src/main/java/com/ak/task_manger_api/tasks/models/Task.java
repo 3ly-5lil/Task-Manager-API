@@ -16,9 +16,16 @@ import java.time.LocalDateTime;
 
 @Data
 @Entity
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Table(
+        name = "task",
+        indexes = {
+                @Index(name = "idx_task_user_id", columnList = "user_id"),
+//                @Index(name = "idx_task_completed ", columnList = "completed")
+        }
+)
 public class Task {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

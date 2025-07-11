@@ -8,6 +8,8 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -21,6 +23,7 @@ public class TaskService {
     @Autowired
     private final TaskRepository _repository;
 
+    @Cacheable(value = "tasksList", key = "#user.id + ':' + #page + ':' + #size")
     public Page<Task> getAllOwnedTasks(AppUser user, int page, int size) {
         log.info("Getting tasks for user '{}', page={}, size={}", user.getUsername(), page, size);
 
@@ -32,6 +35,7 @@ public class TaskService {
         return tasks;
     }
 
+    @Cacheable(value = "tasks", key = "#user.id + ':' + #id")
     public Task getTaskById(long id, AppUser user) {
         log.info("Getting task for user '{}', with id={}", user.getUsername(), id);
 
@@ -42,6 +46,7 @@ public class TaskService {
         return task;
     }
 
+    @CacheEvict(value = {"tasksList", "tasks"}, key = "#user.id + '*'")
     public Task createTask(TaskRequest taskRequest, AppUser user) {
         log.info("User '{}' is creating a new task with title '{}'", user.getUsername(), taskRequest.getTitle());
 
@@ -54,6 +59,7 @@ public class TaskService {
         return saved;
     }
 
+    @CacheEvict(value = {"tasksList", "tasks"}, key = "#user.id + '*'")
     public Task updateTask(long id, TaskRequest taskRequest, AppUser user) throws RuntimeException {
         log.info("User '{}' is updating task '{}'", user.getUsername(), id);
 
@@ -71,6 +77,7 @@ public class TaskService {
         return updated;
     }
 
+    @CacheEvict(value = {"tasksList", "tasks"}, key = "#user.id + '*'")
     public void deleteTask(long id, AppUser user) {
         log.info("User '{}' is attempting to delete task '{}'", user.getUsername(), id);
 
@@ -81,7 +88,8 @@ public class TaskService {
 
         log.info("Task '{}' marked as deleted by user '{}'", id, user.getUsername());
     }
-
+    
+    @CacheEvict(value = {"tasksList", "tasks"}, key = "#user.id + '*'")
     public Task restoreTask(long id, AppUser user) {
         log.info("User '{}' is restoring deleted task '{}'", user.getUsername(), id);
 
