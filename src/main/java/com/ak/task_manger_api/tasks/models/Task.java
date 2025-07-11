@@ -37,8 +37,9 @@ public class Task {
     @Column(nullable = false)
     @ColumnDefault("NOW()")
     private LocalDateTime updatedAt;
-    @Column(nullable = false)
     @Builder.Default
+    @Column(nullable = false)
+    @ColumnDefault("false")
     private Boolean deleted = false;
 
     static public Task fromDTO(TaskRequest taskRequest) {
