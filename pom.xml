@@ -11,7 +11,7 @@
     <groupId>com.ak</groupId>
     <artifactId>task-manger-api</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>task-manger-api</name>
+    <name>Task Manager API</name>
     <description>Demo project for Spring Boot</description>
     <url/>
     <licenses>

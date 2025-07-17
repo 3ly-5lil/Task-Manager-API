@@ -14,7 +14,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.security.access.AccessDeniedException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -155,7 +154,7 @@ public class TaskServiceTests {
             updatedTask.setUser(mockUser);
             updatedTask.setId(task.getId());
 
-            when(taskRepository.findById(task.getId())).thenReturn(Optional.of(task));
+            when(taskRepository.findByIdAndUserAndDeletedFalse(task.getId(), mockUser)).thenReturn(Optional.of(task));
             when(taskRepository.save(any(Task.class))).thenReturn(updatedTask);
 
             Task result = taskService.updateTask(task.getId(), taskRequest, mockUser);
@@ -165,32 +164,19 @@ public class TaskServiceTests {
             assertEquals(result.getDescription(), updatedTask.getDescription());
             assertEquals(result.getCompleted(), updatedTask.getCompleted());
 
-            verify(taskRepository).findById(task.getId());
+            verify(taskRepository).findByIdAndUserAndDeletedFalse(task.getId(), mockUser);
             verify(taskRepository).save(task);
         }
 
         @Test
         void shouldThrowEntityNotFoundExceptionWhenNotExists() {
-            when(taskRepository.findById(1L)).thenReturn(Optional.empty());
+            when(taskRepository.findByIdAndUserAndDeletedFalse(1L, mockUser)).thenReturn(Optional.empty());
 
             TaskRequest taskRequest = new TaskRequest("title", "desc", false);
 
             assertThrows(EntityNotFoundException.class, () -> taskService.updateTask(1L, taskRequest, mockUser));
 
-            verify(taskRepository).findById(1L);
-            verify(taskRepository, never()).save(any());
-        }
-
-        @Test
-        void shouldThrowAccessDeniedExceptionWhenNotOwned() {
-            var actualOwner = AppUser.builder().id(100L).build();
-            var mockTask = new Task(100L, "T", "D", false, actualOwner, LocalDateTime.now(), LocalDateTime.now(), false);
-
-            when(taskRepository.findById(100L)).thenReturn(Optional.of(mockTask));
-
-            assertThrows(AccessDeniedException.class, () -> taskService.updateTask(100L, any(), mockUser));
-
-            verify(taskRepository).findById(100L);
+            verify(taskRepository).findByIdAndUserAndDeletedFalse(1L, mockUser);
             verify(taskRepository, never()).save(any());
         }
     }
